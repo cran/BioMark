@@ -1,0 +1,17 @@
+citHeader("To cite the BioMark package publications use:")
+
+citEntry(entry="Article",
+         title = "Stability-based biomarker selection",
+         author = personList(as.person("R. Wehrens"), 
+                             as.person("P. Franceschi"), 
+                             as.person("U. Vrhovsek"), 
+                             as.person("F. Mattivi")),
+         year         = 2011,
+	 journal      = "Anal. Chim. Acta",
+	 url	      = "http://dx.doi.org/10.1016/j.aca.2011.01.039",
+         
+         textVersion = 
+         paste("R. Wehrens, P. Franceschi, U. Vrhovseka and F. Mattivi,", 
+               "Stability-based biomarker selection",
+               "Anal. Chim. Acta, 2011, in press.")
+)
