@@ -14,7 +14,7 @@ gen.data <- function(nobj1, nobj2 = nobj1, nvar, n.biom = 2,
     X[,,i] <- rbind(mvrnorm(nobj1, means1, cormat),
                     mvrnorm(nobj2, means2, cormat))
   
-  list(X = X, Y = rep(c(0, 1), each = c(nobj1, nobj2)),
+  list(X = X, Y = rep(c(0, 1), c(nobj1, nobj2)),
        n.biomarkers = n.biom,
        means1 = means1, means2 = means2, cormat = cormat)
 }

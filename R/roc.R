@@ -62,15 +62,19 @@ ROC.default <- function(TestResult, D, take.abs = TRUE, ...){
 
 AUC <- function(x, max.mspec = 1) {
   huhn <- aggregate(x$sens, list(x$mspec), max)
-  mean(huhn[huhn[,1] <= max.mspec,2])
+  mean(huhn[huhn[,1] <= max.mspec, 2])
 }
 
-## enter coefficients that are found, true coefficients, and the
-## number of variables from which the coefficients are selected
 roc.value <- function(found, true, totalN)
 {
   TPR <- sum(found %in% true)
   FPR <- (length(found) - TPR) / (totalN - length(true))
 
-  list(sens = TPR / length(true), mspec = FPR)
+  rval <- list(sens = TPR / length(true), mspec = FPR,
+               test = NULL,
+               call = sys.call())
+
+  class(rval) <- "ROC"
+  
+  rval
 }

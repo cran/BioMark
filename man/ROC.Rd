@@ -50,12 +50,14 @@ AUC(x, max.mspec)
     functions.}
 }
 \value{
-Function \code{ROC} returns a list with elements:
-  \item{sens}{Sensitivity, or True Positive Rate (TPR).}
-  \item{mspec}{1 - Specificity, or False Positive Rate (FPR).}
-  \item{test}{levels of the test statistic.}
-  \item{call}{Function call.}
-
+  Function \code{ROC} returns a list with elements:
+  \enumerate{
+    \item{sens}{Sensitivity, or True Positive Rate (TPR).}
+    \item{mspec}{1 - Specificity, or False Positive Rate (FPR).}
+    \item{test}{levels of the test statistic.}
+    \item{call}{Function call.}
+  }
+  
 Function \code{roc.value} returns a list with elements \code{sens} and
 \code{mspec}, i.e., one point on a ROC curve.
 
@@ -69,56 +71,38 @@ T. Lumley: ROC curves - in Programme's Niche, R News 4/1, June 2004.
 }
 \author{Ron Wehrens}
 \examples{
-set.seed(7)
-huhn <- gen.data(10, nvar = 200, nrep = 20)
+data(spikedApples)
+apple.coef <- get.biom(X = spikedApples$dataMatrix,
+                       Y = rep(1:2, each = 10),
+                       fmethod = "vip",
+                       ncomp = 3, type = "coef")
 
-methods <- c("shrinkt", "studentt", "pclda", "plsda")
-setnr <- 14 # check other sets too if you feel like it...
-huhn.coef <- get.biom(huhn$X[,,setnr], huhn$Y,
-                      fmethod = methods, type = "coef",
-                      ncomp = 3, scale.p = "auto")
-plot(ROC(abs(huhn.coef[[1]]$coef.size), 1:2), type = "l",
-     main = paste("Set", setnr))
-for (i in 2:4) 
-  lines(ROC(abs(huhn.coef[[i]]$coef.size), 1:2), col = i, lty = i)
-legend("bottomright", col = 1:4, lty = 1:4,
-       legend = names(huhn.coef))
+## ROC curve for all VIP values, ordered according to size
+true.biom <- (1:ncol(spikedApples$dataMatrix) \%in\% spikedApples$biom)
+vip.roc <- ROC(apple.coef$vip$coef.size, true.biom)
+plot(vip.roc)
 
-## Plot average ROC curves for simulated data
-rock <- list(sens = matrix(0, dim(huhn$X)[[3]], dim(huhn$X)[[2]]),
-             mspec = matrix(0, dim(huhn$X)[[3]], dim(huhn$X)[[2]]))
-rocs <- rep(list(rock), length(methods))
+## Add stability-based selection point
+apple.stab <- get.biom(X = spikedApples$dataMatrix,
+                       Y = rep(1:2, each = 10),
+                       fmethod = "vip",
+                       ncomp = 3, type = "stab")
+stab.roc <- roc.value(apple.stab$vip$biom.indices,
+                      spikedApples$biom,
+                      totalN = ncol(spikedApples$dataMatrix))
+points(stab.roc, col = "red", pch = 19, cex = 1.5)
 
-for (i in 1:dim(huhn$X)[3]) {
-  huhn.coef <- get.biom(huhn$X[,,i], huhn$Y,
-                        fmethod = methods, type = "coef",
-                        ncomp = 3, scale.p = "auto")
-  for (j in seq(along = methods)) {
-    woppa <- ROC(abs(huhn.coef[[j]]$coef.size), 1:huhn$n.biomarkers)
-    rocs[[j]][[1]][i,] = c(woppa$sens)
-    rocs[[j]][[2]][i,] = c(woppa$mspec)
-  }
+\dontrun{
+## Add HC-based selection point
+## Attention: takes approx. 2 minutes on my PC
+apple.HC <- get.biom(X = spikedApples$dataMatrix,
+                     Y = rep(1:2, each = 10),
+                     fmethod = "vip",
+                     ncomp = 3, type = "HC")
+HC.roc <- roc.value(apple.HC$vip$biom.indices,
+                    spikedApples$biom,
+                    totalN = ncol(spikedApples$dataMatrix))
+points(HC.roc, col = "blue", pch = 19, cex = 1.5)
 }
-
-par(mfrow = c(2,2))
-for (j in seq(along = methods)) {
-  matplot(t(rocs[[j]][[2]]), t(rocs[[j]][[1]]), type = "l", col = "gray",
-          xlim = c(0, 1), ylim = c(0, 1), main = methods[j],
-          xlab = "TPR", ylab = "FPR")
-  lines(colMeans(rocs[[j]][[2]]), colMeans(rocs[[j]][[1]]), col = 2)
-}
-
-## Show distributions of AUC values for a simulated scenario
-all.aucs <- matrix(0, dim(huhn$X)[3], length(methods))
-for (i in 1:dim(huhn$X)[3]) {
-  huhn.coef <- get.biom(huhn$X[,,i], huhn$Y,
-                        fmethod = methods, type = "coef",
-                        ncomp = 3, scale.p = "auto")
-  all.aucs[i,] <- sapply(huhn.coef,
-                         function(x) AUC(ROC(abs(x$coef.size),
-                                             1:huhn$n.biomarkers)))
-}
-boxplot(all.aucs ~ col(all.aucs), notch = TRUE, main = "AUC",
-        col = 1:length(methods), names = methods)
 }
 \keyword{classif}

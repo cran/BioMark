@@ -1,9 +1,9 @@
-pclda.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
+pclda.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
                        segments = NULL, variables = NULL, ...)
 {
   if (is.null(segments)) 
     segments <- get.segments(Y)
-  if (is.null(variables))
+  if (is.null(variables)) ## default: use all variables
     variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
 
   x.coef <- array(NA, c(ncol(segments), ncol(X), length(ncomp)))
@@ -15,7 +15,7 @@ pclda.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
   x.coef
 }
 
-plsda.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
+plsda.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
                        segments = NULL, variables = NULL, ...)
 {
   if (is.null(segments))
@@ -32,7 +32,7 @@ plsda.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
   x.coef
 }
 
-vip.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
+vip.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
                      segments = NULL, variables = NULL, ...)
 {
   if (is.null(segments))
@@ -49,9 +49,9 @@ vip.biom <- function(X, Y, ncomp = 2, scale.p = NULL,
   x.coef
 }
 
-### the dots in the shrinkt.biom and studentt.biom functions are
+### the dots in the shrinkt.stab and studentt.stab functions are
 ### necessary to catch extra arguments to other functions.
-shrinkt.biom <- function(X, Y, scale.p = NULL,
+shrinkt.stab <- function(X, Y, scale.p = NULL,
                          segments = NULL, variables = NULL, ...)
 {
   if (is.null(segments))
@@ -68,7 +68,7 @@ shrinkt.biom <- function(X, Y, scale.p = NULL,
   array(x.coef, c(ncol(segments), ncol(X), 1))
 }
 
-studentt.biom <- function(X, Y, scale.p = NULL,
+studentt.stab <- function(X, Y, scale.p = NULL,
                           segments = NULL, variables = NULL, ...)
 {
   if (is.null(segments))

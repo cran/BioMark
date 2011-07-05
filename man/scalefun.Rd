@@ -3,7 +3,8 @@
 \title{Different forms of scaling}
 \description{
   Function providing different forms of scaling in disciminant analysis
-  - the resulting data matrix is mean-centered after the scaling.
+  - the resulting data matrix is mean-centered after the
+  scaling. Modelled after functions in the st package.
 }
 \usage{
 scalefun(sc.p = c("none", "log", "sqrt", "pareto", "auto"))

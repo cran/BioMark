@@ -1,27 +1,16 @@
-get.biom <- function(X, Y,
-                     fmethod = c("all", "pclda", "plsda",
-                       "vip", "studentt"),
-                     type = c("stability", "coef"),
-                     ncomp = 2, max.seg = 100,
-                     oob.size = NULL, oob.fraction = .1,
-                     variable.fraction = 1,
-                     ntop = 10, min.present = .1,
-                     scale.p = "none", ...)
+get.biom <- function(X, Y, fmethod = "all",
+                     type = c("stab", "HC", "coef"),
+                     ncomp = 2, biom.opt = biom.options(),
+                     scale.p = "auto", ...)
 {
-  type <- match.arg(type)
-
-  univ.methods <- c("shrinkt", "studentt")
-  
-  fmethod <- match.arg(fmethod, c("all",
-                                  "shrinkt", "studentt",
-                                  "pclda", "plsda", "vip"),
+  fmethod <- match.arg(fmethod, c("all", biom.opt$fmethods),
                        several.ok = TRUE)
   if ("all" %in% fmethod)
-    fmethod <- c("studentt", "pclda", "plsda",  "vip")
+    fmethod <- biom.opt$fmethods
 
-  multiv <- fmethod[!(fmethod  %in% univ.methods)]
+  multiv <- fmethod[!(fmethod  %in% biom.opt$univ.methods)]
   nmultiv <- length(multiv)
-  univ <- fmethod[(fmethod  %in% univ.methods)]
+  univ <- fmethod[(fmethod  %in% biom.opt$univ.methods)]
   nuniv <- length(univ)
   fmethod <- c(univ, multiv) # do univariate methods first
   nncomp <- rep(c(1, length(ncomp)), c(nuniv, nmultiv))
@@ -37,14 +26,22 @@ get.biom <- function(X, Y,
     names(result) <- fmethod
   }
   
-  if (type == "stability") {
-    if (is.null(oob.size))
-      oob.size <- round(.5 * oob.fraction * length(Y))
-    ## .5 is necessary because there are two classes and oob.size is
-    ## the number of oob samples in one class. For unequal class sizes
-    ## this may be a problem.
-    segments <- get.segments(Y, oob.size = oob.size, max.seg = max.seg)
+  type <- match.arg(type)
+  mod.method <- ifelse(type == "stab", "stab", "coef")
+  fname <- paste(fmethod, mod.method, sep = ".")
 
+  ## Get settings from the biom.opt argument, mostly for stability-based BS
+  if (type == "stab") {
+    oob.size <- biom.opt$oob.size
+    oob.fraction <- biom.opt$oob.fraction
+    smallest.class.fraction <- min(table(Y) / length(Y))
+    ## for equal class sizes this is .5
+    if (is.null(oob.size))
+      oob.size <- round(smallest.class.fraction * oob.fraction * length(Y))
+    max.seg <- biom.opt$max.seg
+    segments <- get.segments(Y, oob.size = oob.size, max.seg = max.seg)
+    
+    variable.fraction <- biom.opt$variable.fraction
     if (variable.fraction < 1) { # use different subsets of variables
       nvar <- round(variable.fraction * ncol(X))
       variables <- sapply(1:ncol(segments),
@@ -56,61 +53,189 @@ get.biom <- function(X, Y,
       variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
       nvars <- rep(max.seg, ncol(X))
     }
-    
-    fname <- paste(fmethod, "biom", sep = ".")
   } else {
-    fname <- paste(fmethod, "coef", sep = ".")
     variables <- NULL
-  }
-  
-  coef.order <- function(xx) {
-    huhn.order <- order(abs(xx), decreasing = TRUE)
-    list(biom.indices = huhn.order, coef.size = xx)
-  }
-  stab.order <- function(xx){
-    huhn.order <- t(apply(abs(xx), 1, order, decreasing = TRUE))
     
-    npicked <- table(huhn.order[,1:ntop])
-    which.picked <- as.numeric(names(npicked))
-    fraction.picked <- npicked / nvars[which.picked]
-    
-    selection <- sort(fraction.picked, decreasing = TRUE)
-    selection <- selection[selection >= min.present]
-    list(biom.indices = as.numeric(names(selection)),
-         fraction.selected = selection)
+    if (type == "HC")
+      nset <- biom.opt$nset
   }
 
+  ## Compared to earlier versions: treat HC separately because of the
+  ## expensive evaluation of null distributions
+  ## Temporary solution - not pretty though - is to do HC in the same
+  ## way only for the univariate methods and to treat the multivariate
+  ## methods separately. Take care that with future versions this may
+  ## have to be revised.
   counter <- 1
   for (m in seq(along = fmethod)) {
-    ## for coef-based selection this is always a vector or a matrix
-    ## for stability-based selection a vector or an array (if nncomp > 1)
+    ## Here the real work is done: call the modelling functions
     huhn.models <- do.call(fname[m], 
                            list(X = X, Y = Y,
                                 segments = segments,
                                 ncomp = ncomp,
-##                                ntop = ntop,
-##                                min.present = min.present,
                                 scale.p = scale.p,
                                 variables = variables, ...))
     
-    if (type == "coef") {
-      orderfun <- coef.order
-      huhn.models <- array(huhn.models, c(1, ncol(X), nncomp[m]))
-    } else {
-      orderfun <- stab.order
-      huhn.models <-
-        array(huhn.models, c(nrow(huhn.models), ncol(huhn.models), nncomp[m]))
-    }
-
-    woppa <- lapply(1:(dim(huhn.models)[3]),
-                    function(i, x) orderfun(x[,,i]),
-                    huhn.models)
+    ## for coef-based selection this is always a vector or a matrix,
+    ## for stability-based selection a vector or an array (if nncomp > 1)
+    switch(type,
+           coef = {
+             orderfun <- function(xx) {
+               huhn.order <- order(abs(xx), decreasing = TRUE)
+               list(biom.indices = huhn.order, coef.size = xx)
+             }
+             huhn.models <- array(huhn.models, c(1, ncol(X), nncomp[m]))
+             woppa <- lapply(1:dim(huhn.models)[3],
+                             function(i, x) orderfun(x[,,i]),
+                             huhn.models)
+           },
+           stab = {
+             orderfun <- function(xx){
+               huhn.order <- t(apply(abs(xx), 1, order, decreasing = TRUE))
+               
+               npicked <- table(huhn.order[,1:biom.opt$ntop])
+               which.picked <- as.numeric(names(npicked))
+               fraction.picked <- npicked / nvars[which.picked]
+               
+               selection <- sort(fraction.picked, decreasing = TRUE)
+               selection <- selection[selection >= biom.opt$min.present]
+               list(biom.indices = as.numeric(names(selection)),
+                    fraction.selected = selection)
+             }
+             
+             huhn.models <-
+               array(huhn.models, c(nrow(huhn.models), ncol(huhn.models),
+                                    nncomp[m]))
+             woppa <- lapply(1:dim(huhn.models)[3],
+                             function(i, x) orderfun(x[,,i]),
+                             huhn.models)
+           },
+           HC = {
+             if (m <= nuniv) {
+               if (is.vector(huhn.models))
+                 huhn.models <- matrix(huhn.models, ncol = 1)
+               huhn.pvals <-
+                 apply(huhn.models, 2,
+                       function(x) 2*(1 - pt(abs(x), nrow(X) - 2)))
+               woppa <-
+                 lapply(1:ncol(huhn.models),
+                        function(i)
+                        list(biom.indices =
+                             HCthresh(huhn.pvals[,i], plotit = FALSE),
+                             coef.size = huhn.models[,i]))
+             } else { # just return something, real calcs later
+               woppa <- lapply(1:ncol(huhn.models),
+                               function(i)
+                               list(biom.indices = NULL,
+                                    coef.size = huhn.models[,i]))
+             }
+           })
+    
     for (mm in 1:nncomp[m]) {
       result[[counter]] <-  woppa[[mm]]
       counter <- counter + 1
     }
   }
+
+  if (type == "HC" & nmultiv > 0) {
+    ## Possible PCLDA, PLSDA and VIP calculations for HC are done here
+    which.pclda <- which(substr(names(result), 1, 5) == "pclda")
+    if (length(which.pclda) > 0) {
+      ## pval.pclda returns pvalues for each number of components, i.e.,
+      ## a matrix, possibly with one column
+      huhn.models <- pval.pclda(X, Y, ncomp, scale.p, nset)
+      for (mm in seq(along = ncomp)) {
+        result[[ which.pclda[mm] ]]$biom.indices <- HCthresh(huhn.models[,mm])
+      }
+    }
+    which.plsda <- which(substr(names(result), 1, 5) == "plsda")
+    which.vip <- which(substr(names(result), 1, 3) == "vip")
+    
+    if (length(which.plsda) > 0 | length(which.vip > 0)) {
+      ## pval.pclda returns pvalues for each number of components, i.e.,
+      ## a matrix, possibly with one column
+      if (length(which.plsda) > 0) {
+        if (length(which.vip > 0)) {
+          smethod <- "both"
+        } else {
+          smethod <- "plsda"
+        }
+      } else {
+        smethod <- "vip"
+      }
+      huhn.models <- pval.plsdavip(X, Y, ncomp, scale.p, nset, smethod)
+      if (length(which.plsda) > 0) {
+        for (mm in seq(along = ncomp)) {
+          result[[ which.plsda[mm] ]]$biom.indices <-
+            HCthresh(huhn.models[,mm,"plsda"])
+        }
+      }
+      if (length(which.vip) > 0) {
+        for (mm in seq(along = ncomp)) {
+          result[[ which.vip[mm] ]]$biom.indices <-
+            HCthresh(huhn.models[,mm, "vip"])
+        }
+      }
+    }
+  }
   
-  result
+  result2 <- c(result, list(info = list(call = match.call(),
+                              type = type, fmethod = fmethod,
+                              nvar = ncol(X),
+                              biom.opt = biom.opt)))
+  class(result2) <- "BMark"
+
+  result2
 }
 
+
+coef.BMark <- function(object, ...) {
+  if (object$info$type != "coef")
+    stop("Coefficients only available from coefficient-based biomarker selection")
+
+  sapply(object[names(object) != "info"], function(xx) xx$coef.size)
+}
+
+print.BMark <- function(x, ...) {
+  type <- x$info$type
+  switch(type,
+         coef = cat("Result of coefficient-based biomarker selection using ",
+           length(x)-1, " modelling method",
+           ifelse(length(x) > 2, "s", ""), ".\n", sep = ""),
+         HC = cat("Result of HC-based biomarker selection using ",
+           length(x)-1, " modelling method",
+           ifelse(length(x) > 2, "s", ""), ".\n", sep = ""),
+         cat("Result of stability-based biomarker selection using ",
+             length(x)-1, " modelling method",
+             ifelse(length(x) > 2, "s", ""), ".\n", sep = ""))
+}
+
+summary.BMark <- function(object, ...) {
+  type <- object$info$type
+  nslots <- length(object)
+  infoslot <- which(names(object) == "info")
+  switch(type,
+         coef = {
+           cat("Result of coefficient-based biomarker selection using ",
+               nslots-1, " modelling method",
+           ifelse(length(object) > 2, "s", ""), ":\n", sep = "")
+           cat(names(object)[-infoslot], "\n")
+           cat("Total number of variables in X matrix:", 
+               object[infoslot]$nvar, "\n")
+         },
+         {
+           typestr <- ifelse(type == "HC", "HC-based", "stability-based")
+           cat("Result of ", typestr, " biomarker selection using ",
+               nslots-1, " modelling method",
+           ifelse(length(object) > 2, "s", ""), ":\n", sep = "")
+           cat(names(object)[-infoslot], "\n")
+           cat("Total number of variables:",
+               object[infoslot]$nvar, "\n")
+           cat("Number of variables selected:\n")
+           nsel <- sapply(object[-infoslot],
+                          function(xx) length(xx$biom.indices))
+           names(nsel) <- names(object)[-infoslot]
+           print(nsel)
+         }
+         )
+}

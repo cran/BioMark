@@ -21,11 +21,14 @@
 \author{Pietro Franceschi}
 \references{
 R. Wehrens, P. Franceschi, U. Vrhovsek and F. Mattivi. Stability-based
-biomarker selection. Analytica Chimica Acta (2011), in press.
+biomarker selection. Analytica Chimica Acta (2011),
+http://dx.doi.org/10.1016/j.aca.2011.01.039.
 }
 \examples{
 data(spikedApples)
 ## show features identified in all apples
-plot(spikedApples$rt, spikedApples$mz)
+plot(spikedApples$rt, spikedApples$mz,
+     xlab = "Retention time (s)", ylab = "m/z",
+     main = "Spiked apples - subset")
 }
 \keyword{datasets}

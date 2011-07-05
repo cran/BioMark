@@ -2,7 +2,8 @@
 \alias{get.segments}
 \title{Crossvalidation segments}
 \description{Provides all possible combinations of samples from the two
-  classes to be left out in crossvalidation.}
+  classes to be left out in crossvalidation, with a maximum given by
+  parameter \code{max.seg}.}
 \usage{
 get.segments(i1, i2 = NULL, oob.size = 1, max.seg = 100)
 }
@@ -16,7 +17,8 @@ get.segments(i1, i2 = NULL, oob.size = 1, max.seg = 100)
     crossvalidation.}
   \item{max.seg}{maximal number of segments to return. If null, all
     possible combinations are returned -- this option is only possible
-    if oob.size equals 1. If it is larger, max.seg must be defined.}
+    if oob.size equals 1. If oob.size is larger, max.seg must be defined
+    since the number of possibilities becomes too large.}
 }
 \value{
   Returns a matrix where the columns contain the numbers of the samples to

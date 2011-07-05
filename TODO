@@ -1,0 +1,3 @@
+- extensibility: instead of a predefined set of functions, the user
+  should be able to use a function of his/her own. This way we do not
+  have to keep on adding new things

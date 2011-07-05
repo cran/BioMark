@@ -36,6 +36,15 @@ gen.data(nobj1, nobj2 = nobj1, nvar, n.biom = 2, group.diff = 0.2,
 X <- gen.data(10, nvar = 200)
 names(X)
 dim(X$X)
+
+set.seed(7)
+simdat <- gen.data(10, nvar = 200, nrep = 1)
+
+simdat.coef <- get.biom(simdat$X[,,1], simdat$Y, fmethod = "all",
+                        type = "coef", ncomp = 3, scale.p = "auto")
+
+simdat.pclda <- get.biom(simdat$X[,,1], simdat$Y, fmethod = "pclda",
+                         type = "stab", ncomp = 2:4, scale.p = "pareto")
 }
 \keyword{manip}
 \keyword{multivariate}

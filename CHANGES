@@ -1,0 +1,17 @@
+0.3.0: - all pls methods now use widekernelpls rather than kernelpls
+       - more efficient HC calculations for the multivariate methods,
+       	 in particular a more efficient p-value estimation
+       - eliminated function studentt.fun since the original in the st
+       	 package no longer has the verbose output
+       - introduction of BMark object type and the coef, print and
+       	 summary generic functions
+       - simplification of get.biom function argument list by definition of
+       	 biom.options function and .biom.options object, as in the pls
+       	 package
+       - default values for stability-based selection are now the ones
+       	 used in the 2011 ACA paper, in particular the default for
+       	 scaling now is "auto" and no longer "none"
+       - renaming of all foo.biom functions to foo.stab
+       - implementation of Higher Criticism
+
+0.2.6: first version submitted to CRAN, and used in the 2011 ACA publication
