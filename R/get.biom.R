@@ -56,8 +56,10 @@ get.biom <- function(X, Y, fmethod = "all",
   } else {
     variables <- NULL
     
-    if (type == "HC")
+    if (type == "HC") {
       nset <- biom.opt$nset
+      HCalpha <- biom.opt$HCalpha
+    }
   }
 
   ## Compared to earlier versions: treat HC separately because of the
@@ -121,7 +123,8 @@ get.biom <- function(X, Y, fmethod = "all",
                  lapply(1:ncol(huhn.models),
                         function(i)
                         list(biom.indices =
-                             HCthresh(huhn.pvals[,i], plotit = FALSE),
+                             HCthresh(huhn.pvals[,i], alpha = HCalpha,
+                                      plotit = FALSE),
                              coef.size = huhn.models[,i]))
              } else { # just return something, real calcs later
                woppa <- lapply(1:ncol(huhn.models),
@@ -145,7 +148,8 @@ get.biom <- function(X, Y, fmethod = "all",
       ## a matrix, possibly with one column
       huhn.models <- pval.pclda(X, Y, ncomp, scale.p, nset)
       for (mm in seq(along = ncomp)) {
-        result[[ which.pclda[mm] ]]$biom.indices <- HCthresh(huhn.models[,mm])
+        result[[ which.pclda[mm] ]]$biom.indices <-
+          HCthresh(huhn.models[,mm], alpha = HCalpha)
       }
     }
     which.plsda <- which(substr(names(result), 1, 5) == "plsda")
@@ -167,13 +171,13 @@ get.biom <- function(X, Y, fmethod = "all",
       if (length(which.plsda) > 0) {
         for (mm in seq(along = ncomp)) {
           result[[ which.plsda[mm] ]]$biom.indices <-
-            HCthresh(huhn.models[,mm,"plsda"])
+            HCthresh(huhn.models[,mm,"plsda"], alpha = HCalpha)
         }
       }
       if (length(which.vip) > 0) {
         for (mm in seq(along = ncomp)) {
           result[[ which.vip[mm] ]]$biom.indices <-
-            HCthresh(huhn.models[,mm, "vip"])
+            HCthresh(huhn.models[,mm, "vip"], alpha = HCalpha)
         }
       }
     }

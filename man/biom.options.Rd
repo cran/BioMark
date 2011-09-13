@@ -62,6 +62,8 @@ biom.options(\dots)
       BioMark.}
     \item{univ.methods}{The names of the univariate biomarker selection
       methods currently known to BioMark.}
+    \item{HCalpha}{The default of the alpha parameter in the HC
+      method. Value: 0.1.}
   }
 }
 \section{Side Effects}{

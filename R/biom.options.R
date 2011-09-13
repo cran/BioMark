@@ -8,7 +8,7 @@
        variable.fraction = .5, ntop = 10, min.present = .1,
        fmethods = c("studentt", "shrinkt", "pclda", "plsda", "vip"),
        univ.methods = c("studentt", "shrinkt"),
-       nset = 10000)
+       nset = 10000, HCalpha = .1)
 
 biom.options <- function(...) {
     if (nargs() == 0) return(.biom.options)
