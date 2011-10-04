@@ -1,3 +1,6 @@
+0.3.2: - added NAMESPACE
+       - updated references
+
 0.3.1: - added HCalpha to the options so that HCthresh can be used in
        	 get.biom with different alpha values
 

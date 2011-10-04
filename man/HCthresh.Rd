@@ -34,7 +34,8 @@ HCthresh(pvec, alpha = 0.1, plotit = FALSE)
   108:14790-14795 (2008).
 
   Ron Wehrens and Pietro Franceschi: Thresholding for Biomarker
-  Selection using Higher Criticism. Submitted for publication.
+  Selection in Multivariate Data using Higher Criticism.
+  Submitted for publication.
 }
 \author{Ron Wehrens}
 

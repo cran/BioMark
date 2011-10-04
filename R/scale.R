@@ -8,7 +8,7 @@ scalefun <- function(sc.p = c("none", "log", "sqrt", "pareto", "auto"))
            "none" = return(scale(X, scale = FALSE)),
            "log" = return(scale(log(X), scale = FALSE)),
            "sqrt" = return(scale(sqrt(X), scale = FALSE)),
-           "pareto" = return(scale(X, scale = sqrt(sd(X)))),
+           "pareto" = return(scale(X, scale = sqrt(apply(X, 2, sd)))),
            "auto" = return(scale(X, scale = TRUE)))
   }
 }

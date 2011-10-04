@@ -76,6 +76,7 @@ biom.options(\dots)
   list element) was provided, the list is returned invisibly.
 }
 \author{Ron Wehrens}
+\seealso{\code{\link{p.adjust}}}
 \note{This function is based on the \code{\link[pls]{pls.options}}
   function in package \pkg{pls}.
 }

@@ -117,3 +117,5 @@ pval.plsdavip <- function(X, Y, ncomp, scale.p, npermut,
 
   result / npermut
 }
+## huhn0 <- pval.plsda(spikedApples$dataMatrix, rep(0:1, each = 10),
+##                     ncomp = 2:3, scale.p = "auto", npermut = 1000)

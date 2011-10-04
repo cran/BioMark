@@ -1,0 +1,13 @@
+export(pclda.coef, plsda.coef, vip.coef, studentt.coef, shrinkt.coef,
+       HCthresh, pval.pclda, pval.plsdavip, biom.options,
+       pclda.stab, plsda.stab, vip.stab, shrinkt.stab, studentt.stab,
+       gen.data, get.biom, ROC, ROC.default, AUC, roc.value,
+       scalefun, get.segments, .biom.options)
+S3method(print, ROC)
+S3method(plot, ROC)
+S3method(lines, ROC)
+S3method(points, ROC)
+S3method(identify, ROC)
+S3method(coef, BMark)
+S3method(print, BMark)
+S3method(summary, BMark)

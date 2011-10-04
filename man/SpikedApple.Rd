@@ -70,7 +70,8 @@ data(SpikeNeg)
 \source{
   P. Franceschi, D. Masuero, U. Vrhovsek, F. Mattivi and R. Wehrens: A
   benchmark spike-in data set for biomarker identification in
-  metabolomics. Submitted for publication.
+  metabolomics. In: "Chemometrics", K. Varmuza, Ed. InTech Open Access
+  Publishers (2011). ISBN: 978-953-307-693-5. 
 }
 \examples{
 data(SpikePos)
