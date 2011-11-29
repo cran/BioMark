@@ -94,7 +94,9 @@ get.biom <- function(X, Y, fmethod = "all",
            stab = {
              orderfun <- function(xx){
                huhn.order <- t(apply(abs(xx), 1, order, decreasing = TRUE))
-               
+
+               npicked <- 1:ncol(huhn.order)
+               names(npicked) <- 1:ncol(huhn.order)
                npicked <- table(huhn.order[,1:biom.opt$ntop])
                which.picked <- as.numeric(names(npicked))
                fraction.picked <- npicked / nvars[which.picked]

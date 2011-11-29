@@ -11,6 +11,10 @@
        nset = 10000, HCalpha = .1)
 
 biom.options <- function(...) {
+    if (exists(".biom.options", where = .GlobalEnv)) {
+        .biom.options <- get(".biom.options", pos = .GlobalEnv)
+    }
+    
     if (nargs() == 0) return(.biom.options)
     current <- .biom.options
     temp <- list(...)
