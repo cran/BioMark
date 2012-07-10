@@ -22,8 +22,7 @@
 \references{
   P. Franceschi, D. Masuero, U. Vrhovsek, F. Mattivi and R. Wehrens: A
   benchmark spike-in data set for biomarker identification in
-  metabolomics. In: "Chemometrics", K. Varmuza, Ed. InTech Open Access
-  Publishers (2011). ISBN: 978-953-307-693-5. 
+  metabolomics. J. Chemom. 26, 16-24 (2012)
 
   R. Wehrens, P. Franceschi, U. Vrhovsek and F. Mattivi. Stability-based
   biomarker selection. Analytica Chimica Acta (2011), 705, 15-23.

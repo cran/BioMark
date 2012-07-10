@@ -21,13 +21,19 @@ get.biom(X, Y, fmethod = "all", type = c("stab", "HC", "coef"),
 \arguments{
   \item{X}{Data matrix. Usually the number of columns (variables) is
     (much) larger than the number of rows (samples).}
-  \item{Y}{Class indication. Either a factor, or a numeric vector.}
+  \item{Y}{Class indication. For classification with two or more factors
+    a factor; a numeric vector will be interpreted as a regression
+    situation, which can only be tackled by \code{fmethod = "lasso"}.}
   \item{fmethod}{Modelling method(s) employed. The default is to use
     \code{"all"}, which will test all methods in the current
-    \code{biom.options$fmethods} list.}
+    \code{biom.options$fmethods} list. Note that from version 0.4.0,
+    \code{"plsda"} and \code{"pclda"} are no longer in the list of
+    methods - they have been replaced by \code{"pls"} and \code{"pcr"},
+    respectively. For compatibility reasons, using the old terms will
+    not lead to an error but only a warning.} 
   \item{type}{Whether to use coefficient size as a criterion
     (\code{"coef"}), \code{"stab"} or \code{"HC"}.}
-  \item{ncomp}{Number of latent variables to use in PCLDA and PLSDA
+  \item{ncomp}{Number of latent variables to use in PCR and PLS (VIP)
     modelling. In function \code{get.biom} this may be a vector; in all
     other functions it should be one number. Default: 2.}
   \item{biom.opt}{Options for the biomarker selection - a list with
@@ -41,49 +47,72 @@ get.biom(X, Y, fmethod = "all", type = c("stab", "HC", "coef"),
   \item{\dots}{Further arguments for modelling functions. Often used to
     catch unused arguments.}
 }
-\value{Returns an object of class "BMark", a list always containing an
-  element \code{info}. When \code{type == "coef"} and
-  \code{type == "HC"}, the object also contains elements
-  \code{biom.indices} and \code{coef.size}: these contain the indices of
-  the variables sorted on absolute value of the coefficients, and the
-  values of the coefficients, respectively. Note that the 
-  coefficients themselves are in the original order.
-  
-  When \code{type == "stab"}, \code{times.selected} is returned
-  rather than \code{coef.size}: this indicates in what fraction of the
-  crossvalidation iterations a particular variable has been
-  selected. The more times it has been selected, the more stable it is
-  as a biomarker.}
+\value{Function \code{get.biom} returns an object of class "BMark", a
+  list containing an element 
+  for every \code{fmethod} that is selected, as well as an element
+  \code{info}. The individual elements contain information depending on
+  the type chosen: for \code{type == "coef"}, the only element returned
+  is a matrix containing coefficient sizes. For \code{type == "HC"}
+  and \code{type == "stab"}, a list is returned containing elements
+  \code{biom.indices}, and either \code{pvals} (for \code{type == "HC"})
+  or \code{fraction.selected} (for \code{type == "stab"}).
+  Element \code{biom.indices} contains the indices of
+  the selected variables, and can be extracted using function
+  \code{selection}. Element \code{pvals} contains the p values
+  used to perform HC thresholding; these are presented in the original
+  order of the variables, and can be obtained directly from e.g. t
+  statistics, or from permutation sampling. Element
+  \code{fraction.selected} indicates in what fraction of the
+  stability selection iterations a particular variable has been
+  selected. The more often it has been selected, the more stable it is
+  as a biomarker. Generic function \code{coef.biom} extracts model
+  coefficients, p values or stability fractions for types \code{"coef"},
+  \code{"HC"} and \code{"stab"}, respectively.}
 \author{Ron Wehrens}
 \seealso{\code{\link{biom.options}}, \code{\link{get.segments}},
-  \code{\link{scalefun}}}
+  \code{\link{selection}}, \code{\link{scalefun}}}
 \examples{
 ## Real apple data (small set)
 data(spikedApples)
 apple.coef <- get.biom(X = spikedApples$dataMatrix,
-                       Y = rep(1:2, each = 10),
+                       Y = factor(rep(1:2, each = 10)),
                        ncomp = 2:3, type = "coef")
+coef.sizes <- coef(apple.coef) 
+sapply(coef.sizes, range)
 
 ## stability-based selection
-set.seed(7)
+set.seed(17)
 apple.stab <- get.biom(X = spikedApples$dataMatrix,
-                       Y = rep(1:2, each = 10),
+                       Y = factor(rep(1:2, each = 10)),
                        ncomp = 2:3, type = "stab")
-sapply(apple.stab[names(apple.stab) != "info"],
-       function(x, y) sum(x$biom.indices \%in\% y),
-       spikedApples$biom)
-## TPs (stab): all find 5/5
-sapply(apple.stab[names(apple.stab) != "info"],
-       function(x, y) sum(!(x$biom.indices \%in\% y)),
-       spikedApples$biom)
-## FPs (stab): all methods find many FPs, PCLDA even more
-## than the others
+selected.variables <- selection(apple.stab)
+unlist(sapply(selected.variables, function(x) sapply(x, length)))
+## Ranging from more than 70 for pcr, approx 40 for pls and student t,
+## to 0-29 for the lasso
+unlist(sapply(selected.variables,
+              function(x) lapply(x, function(xx, y) sum(xx \%in\% y),
+              spikedApples$biom)))
+## TPs (stab): all find 5/5, except pcr.2 and the lasso with values for lambda
+## larger than 0.0484
+
+unlist(sapply(selected.variables,
+              function(x) lapply(x, function(xx, y) sum(!(xx \%in\% y)),
+              spikedApples$biom)))
+## FPs (stab): PCR finds most FPs (approx. 60), other latent-variable
+## methods approx 40, lasso allows for the optimal selection around 
+## lambda = 0.0702
+
+## regression example
+data(gasoline) ## from the pls package
+gasoline.stab <- get.biom(gasoline$NIR, gasoline$octane,
+                          fmethod = c("pcr", "pls", "lasso"), type = "stab")
+
 
 \dontrun{
 ## Same for HC-based selection
 ## Warning: takes a long time!
 apple.HC <- get.biom(X = spikedApples$dataMatrix,
-                     Y = rep(1:2, each = 10),
+                     Y = factor(rep(1:2, each = 10)),
                      ncomp = 2:3, type = "HC")
 sapply(apple.HC[names(apple.HC) != "info"],
        function(x, y) sum(x$biom.indices \%in\% y),

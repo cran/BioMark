@@ -79,7 +79,7 @@ apple.coef <- get.biom(X = spikedApples$dataMatrix,
 
 ## ROC curve for all VIP values, ordered according to size
 true.biom <- (1:ncol(spikedApples$dataMatrix) \%in\% spikedApples$biom)
-vip.roc <- ROC(apple.coef$vip$coef.size, true.biom)
+vip.roc <- ROC(apple.coef$vip, true.biom)
 plot(vip.roc)
 
 ## Add stability-based selection point
@@ -87,7 +87,7 @@ apple.stab <- get.biom(X = spikedApples$dataMatrix,
                        Y = rep(1:2, each = 10),
                        fmethod = "vip",
                        ncomp = 3, type = "stab")
-stab.roc <- roc.value(apple.stab$vip$biom.indices,
+stab.roc <- roc.value(apple.stab$vip[[1]]$biom.indices,
                       spikedApples$biom,
                       totalN = ncol(spikedApples$dataMatrix))
 points(stab.roc, col = "red", pch = 19, cex = 1.5)

@@ -17,7 +17,7 @@ scalefun(sc.p = c("none", "log", "sqrt", "pareto", "auto"))
   mean-centers the result.}
 \author{Ron Wehrens}
 \examples{
-X <- gen.data(5, nvar = 9, nrep = 1)
+X <- gen.data(5, nvar = 9, nsimul = 1)
 FUN <- scalefun(sc.p = "pareto")
 FUN(X$X[,,1])
 }

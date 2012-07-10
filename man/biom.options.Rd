@@ -56,14 +56,23 @@ biom.options(\dots)
       returns those variables that are selected in every
       iteration. Default: .1.}
     \item{nset}{The number of permutations to establish null
-      distributions for PCLDA, PLSDA and VIP statistics in the
+      distributions for PCR, PLS and VIP statistics in the
       Higher-Criticism approach. Default: 10,000.}
     \item{fmethods}{All biomarker selection methods available within
-      BioMark.}
+      BioMark. Currently equal to \code{c("studentt", "shrinkt", "pcr",
+	"pls", "vip", "lasso"}. } 
     \item{univ.methods}{The names of the univariate biomarker selection
-      methods currently known to BioMark.}
+      methods currently known to BioMark. Currently equal to
+      \code{c("studentt", "shrinkt")}}
     \item{HCalpha}{The default of the alpha parameter in the HC
       method. Value: 0.1.}
+    \item{lasso}{a list of arguments passed to the underlying
+      \code{glmnet} function, such as \code{family}, \code{nlambda},
+      \code{alpha}, \code{lambda}, or \code{lambda.min.ratio}. For
+      binary classification, the "binomial" family is the default, but
+      the most similar setting compared to the other methods in the package
+      is \code{family = "gaussian"}. For choices other than the default,
+      a warning is printed to the screen.}
   }
 }
 \section{Side Effects}{
@@ -76,7 +85,7 @@ biom.options(\dots)
   list element) was provided, the list is returned invisibly.
 }
 \author{Ron Wehrens}
-\seealso{\code{\link{p.adjust}}}
+\seealso{\code{\link{glmnet}}}
 \note{This function is based on the \code{\link[pls]{pls.options}}
   function in package \pkg{pls}.
 }
@@ -87,6 +96,10 @@ biom.options("max.seg")
 
 ## Set options:
 biom.options(max.seg = 100, oob.fraction = .2)
+.biom.options$lasso$alpha <- .75
+biom.options()
+## the next line removes some options - for these, glmnet defaults will be used
+biom.options(lasso = list(alpha = .9, family = "binomial"))
 
 ## Restore factory settings:
 rm(.biom.options)

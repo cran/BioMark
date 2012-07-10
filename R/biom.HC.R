@@ -22,15 +22,15 @@ HCthresh <- function(pvec, alpha = .1, plotit = FALSE)
 
 
 ### functions to generate individual null distributions for all
-### variables. Two separate functions for PCLDA, and PLSDA/VIP.
+### variables. Two separate functions for PCR, and PLS/VIP.
 ### Contrary to an earlier implementation for the spiked apple data,
 ### here we allow ncomp to be a vector. We do not allow subsets of
 ### variables in X.
 ### Added June 23.
 ### Further speed improvement: June 24. 
-pval.pclda <- function(X, Y, ncomp, scale.p, npermut) {
+pval.pcr <- function(X, Y, ncomp, scale.p, npermut) {
   result <- matrix(0, ncol(X), length(ncomp))
-  dimnames(result) <- list(colnames(X), paste(ncomp, "PCs"))
+  dimnames(result) <- list(colnames(X), ncomp)
   
   maxcomp <- max(ncomp)
 
@@ -62,18 +62,16 @@ pval.pclda <- function(X, Y, ncomp, scale.p, npermut) {
   result / npermut
 }
 
-## huhn0 <- pval.pclda(spikedApples$dataMatrix, rep(0:1, each = 10),
+## huhn0 <- pval.pcr(spikedApples$dataMatrix, rep(0:1, each = 10),
 ##                     ncomp = 2:3, scale.p = "auto", npermut = 1000)
 
-pval.plsdavip <- function(X, Y, ncomp, scale.p, npermut,
-                          smethod = c("both", "plsda", "vip")) {
+pval.plsvip <- function(X, Y, ncomp, scale.p, npermut,
+                        smethod = c("both", "pls", "vip")) {
   smethod <- match.arg(smethod)
   nmethods <- ifelse(smethod == "both", 2, 1)
-  if (smethod == "both") smethod = c("plsda", "vip")
+  if (smethod == "both") smethod = c("pls", "vip")
   result <- array(0, c(ncol(X), length(ncomp), nmethods))
-  dimnames(result) <- list(colnames(X),
-                           paste(ncomp, "LVs"),
-                           smethod)
+  dimnames(result) <- list(colnames(X), ncomp, smethod)
 
   maxcomp <- max(ncomp)
   Y <- matrix(as.integer(factor(Y)), ncol = 1)
@@ -94,18 +92,18 @@ pval.plsdavip <- function(X, Y, ncomp, scale.p, npermut,
   }
 
   huhn <- plsr(Y ~ Xsc, maxcomp, method = "widekernelpls")
-  if ("plsda" %in% smethod)
-    plsda.coefs <- abs(huhn$coefficients[,1,ncomp]) ## absolute size matters
+  if ("pls" %in% smethod)
+    pls.coefs <- abs(huhn$coefficients[,1,ncomp]) ## absolute size matters
   if ("vip" %in% smethod)
     vip.coefs <- get.vip(huhn)[,ncomp]              ## always positive  
   
   for (i in 1:npermut) {
     huhn <- plsr(sample(Y) ~ Xsc, maxcomp, method = "widekernelpls")
 
-    if ("plsda" %in% smethod) {
+    if ("pls" %in% smethod) {
       nulls <- abs(huhn$coefficients[,1,ncomp])
-      coef.bigger <- as.numeric((plsda.coefs - nulls < 0)) ## 0/1
-      result[,,"plsda"] <- result[,,"plsda"] + coef.bigger
+      coef.bigger <- as.numeric((pls.coefs - nulls < 0)) ## 0/1
+      result[,,"pls"] <- result[,,"pls"] + coef.bigger
     }
     
     if ("vip" %in% smethod) {
@@ -117,5 +115,5 @@ pval.plsdavip <- function(X, Y, ncomp, scale.p, npermut,
 
   result / npermut
 }
-## huhn0 <- pval.plsda(spikedApples$dataMatrix, rep(0:1, each = 10),
+## huhn0 <- pval.pls(spikedApples$dataMatrix, rep(0:1, each = 10),
 ##                     ncomp = 2:3, scale.p = "auto", npermut = 1000)

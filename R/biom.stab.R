@@ -1,52 +1,102 @@
-pclda.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
-                       segments = NULL, variables = NULL, ...)
+lasso.stab <- function(X, Y, scale.p = NULL,
+                       segments = NULL, variables = NULL,
+                       ...)
 {
-  if (is.null(segments)) 
-    segments <- get.segments(Y)
-  if (is.null(variables)) ## default: use all variables
-    variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
+  lasso.opt <- biom.options()$lasso
+  
+  ## do one run to obtain lambda sequence
+  ## this one also will give a warning in case of an inappropriate family
+  lambdas <- as.numeric(colnames(lasso.coef(X, Y, scale.p, ...)))
+  if (is.null(lasso.opt$lambda))
+    lasso.opt$lambda <- lambdas
+  
+  ## get all coefficients - note that they usually are calculated for only
+  ## a part of the variables in each iteration
+  all.coefs <- lapply(1:ncol(segments),
+                      function(i, xx, ss, vv, yy) {
+                        huhn <- lasso.coef(xx[-ss[,i], vv[,i]],
+                                           yy[-ss[,i]], scale.p = scale.p,
+                                           lasso.opt = lasso.opt, ...)
+                        (huhn != 0) + 0 ## + 0 to convert to nrs
+                      },
+                      X, segments, variables, Y)
 
-  x.coef <- array(NA, c(ncol(segments), ncol(X), length(ncomp)))
-  for (i in 1:ncol(segments))
-    x.coef[i,variables[,i],] <-
-      pclda.coef(X[-segments[,i], variables[,i]], Y[-segments[,i]],
-                 ncomp = ncomp, scale.p = scale.p, ...)
+  x.coef <- matrix(0, ncol(X), length(lambdas))
+  dimnames(x.coef) <- list(NULL, lambdas)
+  ## count how often non-zero - this can probably be written more elegantly
+  for (i in 1:ncol(segments)) 
+    x.coef[variables[,i],] <- x.coef[variables[,i],] + all.coefs[[i]]
+  
+  ## finally, correct for the number of times every variable has had the
+  ## chance to be selected. Maximum value in x.coef can be 1.
+  noccur <- tabulate(variables, nbins = ncol(X))
+  x.coef.sc <- sweep(x.coef, 1, noccur, FUN = "/")
 
-  x.coef
+  x.coef.sc
 }
 
-plsda.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
+
+########################################################################
+### Functions below select by taking the ntop biggest coefficients
+########################################################################
+
+## New selection function for the ntop highest coefs. The last
+## dimension will always disappear, and the result is a matrix,
+## possibly with only one column. The number of rows is always equal
+## to the number of variables
+
+select.aux <- function(object, variables) {
+  ntop <- biom.options()$ntop
+  nvar <- dim(object)[2]
+
+  if (is.matrix(object))
+    object <- array(object, c(nrow(object), ncol(object), 1))
+  
+  gooduns <- apply(object, c(1,3),
+                   function(x) sort.list(abs(x), decreasing = TRUE)[1:ntop])
+  x.coef <- apply(gooduns, 3, function(x) tabulate(x, nbins = nvar))
+
+  ## finally, correct for the number of times every variable has had the
+  ## chance to be selected. Maximum value in the result can be 1.
+  noccur <- tabulate(variables, nbins = nvar)
+  sweep(x.coef, 1, noccur, FUN = "/")
+}
+
+
+pcr.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
                        segments = NULL, variables = NULL, ...)
 {
-  if (is.null(segments))
-    segments <- get.segments(Y)
-  if (is.null(variables))
-    variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
-  
   x.coef <- array(NA, c(ncol(segments), ncol(X), length(ncomp)))
   for (i in 1:ncol(segments))
     x.coef[i,variables[,i],] <-
-      plsda.coef(X[-segments[,i], variables[,i]], Y[-segments[,i]],
+      pcr.coef(X[-segments[,i], variables[,i]], Y[-segments[,i]],
+                 ncomp = ncomp, scale.p = scale.p, ...)
+
+  select.aux(x.coef, variables)
+}
+
+pls.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
+                       segments = NULL, variables = NULL, ...)
+{
+  x.coef <- array(NA, c(ncol(segments), ncol(X), length(ncomp)))
+  for (i in 1:ncol(segments))
+    x.coef[i,variables[,i],] <-
+      pls.coef(X[-segments[,i], variables[,i]], Y[-segments[,i]],
                  ncomp = ncomp, scale.p = scale.p, ...)
   
-  x.coef
+  select.aux(x.coef, variables)
 }
 
 vip.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
                      segments = NULL, variables = NULL, ...)
 {
-  if (is.null(segments))
-    segments <- get.segments(Y)
-  if (is.null(variables))
-    variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
-  
   x.coef <- array(NA, c(ncol(segments), ncol(X), length(ncomp)))
   for (i in 1:ncol(segments)) 
     x.coef[i,variables[,i],] <-
       vip.coef(X[-segments[,i], variables[,i]], Y[-segments[,i]],
                ncomp = ncomp, scale.p = scale.p, ...)
   
-  x.coef
+  select.aux(x.coef, variables)
 }
 
 ### the dots in the shrinkt.stab and studentt.stab functions are
@@ -54,34 +104,26 @@ vip.stab <- function(X, Y, ncomp = 2, scale.p = NULL,
 shrinkt.stab <- function(X, Y, scale.p = NULL,
                          segments = NULL, variables = NULL, ...)
 {
-  if (is.null(segments))
-    segments <- get.segments(Y)
-  if (is.null(variables))
-    variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
-  
   x.coef <- matrix(NA, ncol(segments), ncol(X))
-  for (i in 1:ncol(segments))
+  cat("\n")
+  for (i in 1:ncol(segments)) {
     x.coef[i,variables[,i]] <- shrinkt.coef(X[-segments[,i], variables[,i]], 
                                             Y[-segments[,i]],
                                             scale.p = scale.p, ...)
+  }
   
-  array(x.coef, c(ncol(segments), ncol(X), 1))
+  select.aux(x.coef, variables)
 }
 
 studentt.stab <- function(X, Y, scale.p = NULL,
                           segments = NULL, variables = NULL, ...)
 {
-  if (is.null(segments))
-    segments <- get.segments(Y)
-  if (is.null(variables))
-    variables <- matrix(1:ncol(X), nrow = ncol(X), ncol = ncol(segments))
-  
   x.coef <- matrix(NA, ncol(segments), ncol(X))
   for (i in 1:ncol(segments))
     x.coef[i,variables[,i]] <- studentt.coef(X[-segments[,i], variables[,i]], 
                                              Y[-segments[,i]],
                                              scale.p = scale.p, ...)
   
-  array(x.coef, c(ncol(segments), ncol(X), 1))
+  select.aux(x.coef, variables)
 }
 

@@ -1,8 +1,7 @@
-export(pclda.coef, plsda.coef, vip.coef, studentt.coef, shrinkt.coef,
-       HCthresh, pval.pclda, pval.plsdavip, biom.options,
-       pclda.stab, plsda.stab, vip.stab, shrinkt.stab, studentt.stab,
-       gen.data, get.biom, ROC, ROC.default, AUC, roc.value,
-       scalefun, get.segments, .biom.options)
+export(HCthresh, biom.options, scalefun,
+       gen.data, gen.data2, get.biom, traceplot,
+       ROC, ROC.default, AUC, roc.value,
+       get.segments, .biom.options, selection)
 S3method(print, ROC)
 S3method(plot, ROC)
 S3method(lines, ROC)

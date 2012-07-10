@@ -35,7 +35,7 @@ HCthresh(pvec, alpha = 0.1, plotit = FALSE)
 
   Ron Wehrens and Pietro Franceschi: Thresholding for Biomarker
   Selection in Multivariate Data using Higher Criticism.
-  Submitted for publication.
+  Mol. Biosystems (2012). In press. DOI: 10.1039/C2MB25121C
 }
 \author{Ron Wehrens}
 
@@ -47,7 +47,7 @@ HCthresh(pvec, alpha = 0.1, plotit = FALSE)
 data(spikedApples)
 bms <- get.biom(spikedApples$dataMatrix, rep(0:1, each = 10),
                 type = "coef", fmethod = "studentt")
-bms.pvalues <- 2 * (1 - pt(abs(bms[[1]]$coef.size), 18))
+bms.pvalues <- 2 * (1 - pt(abs(bms[[1]]), 18))
 sum(bms.pvalues < .05)                           ## 15
 sum(p.adjust(bms.pvalues, method = "fdr") < .05) ## 4
 signif.bms <- HCthresh(bms.pvalues, plotit = TRUE)

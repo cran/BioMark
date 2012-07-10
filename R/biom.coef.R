@@ -1,8 +1,9 @@
-pclda.coef <- function(X, Y, ncomp = 2, scale.p = NULL, ...)
+pcr.coef <- function(X, Y, ncomp, scale.p, ...)
 {
-  if (is.factor(Y)) Y <- as.numeric(Y)
-  if (length(table(Y)) != 2) stop("only two-class discrimination implemented")
-  
+  if (nlevels(Y) > 2)
+    stop("multi-class discrimination not implemented for PCR")
+
+  Y <- as.numeric(Y)
   FUN <- scalefun(scale.p)
   matrix(svdpc.fit(FUN(X), Y, ncomp = max(ncomp),
                    stripped = TRUE)$coefficients[, 1, ncomp],
@@ -12,23 +13,25 @@ pclda.coef <- function(X, Y, ncomp = 2, scale.p = NULL, ...)
 
 ## Changed to widekernelpls.fit because this probably is the most
 ## relevant situation  
-plsda.coef <- function(X, Y, ncomp = 2, scale.p = NULL, ...)
+pls.coef <- function(X, Y, ncomp, scale.p, ...)
 {
-  if (is.factor(Y)) Y <- as.numeric(Y)
-  if (length(table(Y)) != 2) stop("only two-class discrimination implemented")
-  
+  if (nlevels(Y) > 2)
+    stop("multi-class discrimination not implemented for PLS")
+
+  Y <- as.numeric(Y)
   FUN <- scalefun(scale.p)
   matrix(widekernelpls.fit(FUN(X), Y, ncomp = max(ncomp),
                            stripped = TRUE)$coefficients[, 1, ncomp],
          ncol(X), length(ncomp))
 }
 
-vip.coef <- function(X, Y, ncomp = 2, scale.p = NULL, ...)
-{ ## careful with the next line! VIPs change depending on the scale of
-  ## Y, so it matters whether you use 0/1, -1/1, or other codings.
-  if (is.factor(Y)) Y <- as.numeric(Y)
-  FUN <- scalefun(scale.p)
+vip.coef <- function(X, Y, ncomp, scale.p, ...)
+{
+  if (nlevels(Y) > 2)
+    stop("multi-class discrimination not implemented for VIP")
 
+  Y <- as.numeric(Y)
+  FUN <- scalefun(scale.p)
   plsmod <- plsr(Y ~ FUN(X), ncomp = max(ncomp), method = "widekernelpls")
   ww <- loading.weights(plsmod)
 
@@ -44,25 +47,60 @@ vip.coef <- function(X, Y, ncomp = 2, scale.p = NULL, ...)
   result
 }
 
-studentt.coef <- function(X, Y, scale.p = NULL, ...)
+studentt.coef <- function(X, Y, scale.p, ...)
 {
-  if (is.factor(Y)) Y <- as.numeric(Y)
-  if (length(table(Y)) != 2) stop("only two-class discrimination implemented")
+  if (nlevels(Y) > 2)
+    stop("only two-class discrimination implemented for studentt")
   
   FUN <- scalefun(scale.p)
   TFUN <- studentt.fun(Y)
   
-  TFUN(FUN(X))
+  matrix(TFUN(FUN(X)), ncol = 1)
 }
 
-shrinkt.coef <- function(X, Y, scale.p = NULL, ...)
+shrinkt.coef <- function(X, Y, scale.p, ...)
 {
-  if (is.factor(Y)) Y <- as.numeric(Y)
-  if (length(table(Y)) != 2) stop("only two-class discrimination implemented")
+  if (nlevels(Y) > 2)
+    stop("only two-class discrimination implemented for shrinkt")
   
   FUN <- scalefun(scale.p)
-  TFUN <- shrinkt.fun(L =  Y, FALSE, FALSE)
+  TFUN <- shrinkt.fun(L =  Y, var.equal = FALSE, verbose = FALSE)
   
-  TFUN(FUN(X))
+  matrix(TFUN(FUN(X)), ncol = 1)
+}
+
+## Nov 21, 2011: inclusion of the lasso. For classification, Y should
+## be a factor!
+lasso.coef <- function(X, Y, scale.p, lasso.opt = biom.options()$lasso, ...)
+{
+  ## check whether family and character of Y agree
+  fam <- lasso.opt$family
+  if (!is.null(fam)) {
+    if (!is.factor(Y)) {
+      if (fam != "gaussian")
+        stop("Attempt of regression with a family different than 'gaussian'")
+    } else {
+      if (fam != "binomial")
+        stop("Attempt of binary classification with a family different than 'binomial'")
+    }
+  } else {
+    if (!is.factor(Y)) {
+      lasso.opt$family <- "gaussian"
+    } else {
+      lasso.opt$family <- "binomial"
+    }
+  }
+  
+  ##   browser()
+  
+  FUN <- scalefun(scale.p)
+  glmargs <- c(list(x = FUN(X), y = Y, standardize = FALSE,
+                    dfmax = ncol(X)), lasso.opt)
+  
+  huhn <- do.call(glmnet, glmargs)
+  x.coef <- as.matrix(huhn$beta)
+  colnames(x.coef) <- huhn$lambda
+  
+  x.coef
 }
 

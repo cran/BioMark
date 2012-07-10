@@ -1,3 +1,35 @@
+0.4.0: - added lasso and elastic nets to the list of methods for
+       	 "coef" and "stab"; also changes in biom.options and
+       	 get.biom. Additional function traceplot.
+       - return values for auxiliary functions like studentt.stab and
+       	 friends have changed: now they only contain (corrected)
+       	 frequencies in which a particular variable is among the ntop
+       	 best variables. Also the names have changed: coef.size now is
+       	 only returned when type == "coef"
+       - coef.BMark function no longer returns indices of selected
+       	 variables but coefficient sizes when type == "coef" (this was
+       	 already the case), selection frequencies for stability
+       	 selection, and estimated p values for HC thresholding.
+       - added "selection" function to get the selected variables
+       - the input of the get.biom function is changed:
+       	 for classification cases Y must be a factor. If a numerical
+       	 vector is used for Y with only two different values, it is
+       	 converted into a factor with a warning.
+       - output of the get.biom function is organized differently: now
+       	 the top level of the list consists of the different methods
+       	 (studentt, vip, lasso), and the second level consists of the
+       	 different parameter settings for each method (lambda for
+       	 lasso, ncomp for plsda/pclda/vip).
+       - now also support for regression in stability selection. As a
+       	 result, naming of fmethods has changed: "plsda" and "pclda"
+       	 are now replaced by "pls" and "pcr", respectively. The old
+       	 names still work but give a warning.
+       - updated references (once again)
+       - several corrections to man pages (in biom.options, get.biom);
+       	 spotted by Nir Shahaf.       	 
+
+0.3.3: - corrected a bug in biom.options()
+
 0.3.2: - added NAMESPACE
        - updated references
 
