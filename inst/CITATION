@@ -1,17 +1,19 @@
-citHeader("To cite the BioMark package publications use:")
+citHeader("To cite BioMark in publications use:")
 
-citEntry(entry="Article",
-         title = "Stability-based biomarker selection",
-         author = personList(as.person("R. Wehrens"), 
-                             as.person("P. Franceschi"), 
-                             as.person("U. Vrhovsek"), 
-                             as.person("F. Mattivi")),
-         year         = 2011,
-	 journal      = "Anal. Chim. Acta",
-	 url	      = "http://dx.doi.org/10.1016/j.aca.2011.01.039",
-         
-         textVersion = 
-         paste("R. Wehrens, P. Franceschi, U. Vrhovseka and F. Mattivi,", 
-               "Stability-based biomarker selection",
-               "Anal. Chim. Acta, 2011, in press.")
+citEntry(entry = "Article",
+  title        = "Meta-Statistics for Variable Selection: The {R} Package {BioMark}",
+  author       = personList(as.person("Ron Wehrens"),
+                   as.person("Pietro Franceschi")),
+  journal      = "Journal of Statistical Software",
+  year         = "2012",
+  volume       = "51",
+  number       = "10",
+  pages        = "1--18",
+  url          = "http://www.jstatsoft.org/v51/i10/",
+
+  textVersion  =
+  paste("Ron Wehrens, Pietro Franceschi (2012).",
+        "Meta-Statistics for Variable Selection: The R Package BioMark.",
+        "Journal of Statistical Software, 51(10), 1-18.",
+        "URL http://www.jstatsoft.org/v51/i10/.")
 )

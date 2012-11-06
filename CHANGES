@@ -1,3 +1,7 @@
+0.4.1: - updated citation information: an appropriate reference for
+       	 the software package is now available, rather than a
+       	 reference to the first paper in which the package was used.
+
 0.4.0: - added lasso and elastic nets to the list of methods for
        	 "coef" and "stab"; also changes in biom.options and
        	 get.biom. Additional function traceplot.

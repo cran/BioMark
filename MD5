@@ -1,5 +1,5 @@
-40474b8f6c2cd1adc59871cb7b2f950a *CHANGES
-e6398c5f7c9011187f0a4eeb0f628c97 *DESCRIPTION
+8c6b884760e8035cb9bde0ca28f6cc42 *CHANGES
+7b604ede2f3ccf240f23e9323dcc47ec *DESCRIPTION
 abacbafdc0850b6cfe9326dbd25753c7 *NAMESPACE
 7d15b628d586de201ee708778ee8eeaa *R/biom.HC.R
 3c17f19c8fe330b4ade3f9e3ef8260c4 *R/biom.coef.R
@@ -14,13 +14,13 @@ cf214013de9070c088f90f55b5b3da5f *R/segments.R
 aae2b1d006ef4f2f36a6fb014da01891 *data/SpikeNeg.RData
 6953b6eea1f34537bd7819243fae976c *data/SpikePos.RData
 54f0a92a774a7011b0adad90d37be480 *data/spikedApples.RData
-81507445c23d72cb90b57991c1572d68 *inst/CITATION
+3ac9a00069d797414cf58fde5a4c4a5c *inst/CITATION
 104918e8280b713f029c52449df8dd3d *man/HCthresh.Rd
 05f5eccddc8b349b93a1d5afd46b4703 *man/ROC.Rd
 093499a59ba30860277d492449922344 *man/SpikedApple.Rd
 21b55f59aa41c2687f993b06367f2673 *man/auxBiom.Rd
 a240e94d2ca89350a40325443650f24b *man/biom.options.Rd
-d59aad485c7663cd85b598957ad7b755 *man/gen.data.Rd
+4fddbafe64c9858157b180ab0a1260df *man/gen.data.Rd
 ae316039ac2d0d4fc8b095ab66c6664f *man/get.biom.Rd
 3a54a130eb3f6005ba37d074bb1664ed *man/get.segments.Rd
 b29de0060a4936c1ec00a4d08d7a0d0d *man/scalefun.Rd

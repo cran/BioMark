@@ -1,7 +1,7 @@
 Package: BioMark
 Type: Package
 Title: Find biomarkers in two-class discrimination problems
-Version: 0.4.0
+Version: 0.4.1
 Author: Ron Wehrens, Pietro Franceschi
 Maintainer: Ron Wehrens <ron.wehrens@fmach.it>
 Description: The package provides biomarker selection for several
@@ -13,6 +13,6 @@ License: GPL (>= 2)
 Depends: pls, glmnet, st (>= 1.1.6)
 Suggests: MASS
 LazyLoad: yes
-Packaged: 2012-07-10 11:40:43 UTC; ron
+Packaged: 2012-11-06 11:07:54 UTC; ron
 Repository: CRAN
-Date/Publication: 2012-07-10 13:54:13
+Date/Publication: 2012-11-06 11:44:26
