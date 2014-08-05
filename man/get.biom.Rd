@@ -40,8 +40,8 @@ get.biom(X, Y, fmethod = "all", type = c("stab", "HC", "coef"),
     several named elements. See \code{\link{biom.options}}.}
   \item{scale.p}{Scaling. This is performed individually in every
     crossvalidation iteration, and can have a profound effect on the
-    results. Default: "none". Other possible choices: "auto" for
-    autoscaling, "pareto" for pareto scaling, "log" and "sqrt" for log
+    results. Default: "auto" (autoscaling). Other possible choices:
+    "none" for no scaling, "pareto" for pareto scaling, "log" and "sqrt" for log
     and square root scaling, respectively.}
   \item{object, x}{A BMark object.}
   \item{\dots}{Further arguments for modelling functions. Often used to
@@ -80,6 +80,7 @@ apple.coef <- get.biom(X = spikedApples$dataMatrix,
 coef.sizes <- coef(apple.coef) 
 sapply(coef.sizes, range)
 
+\dontrun{
 ## stability-based selection
 set.seed(17)
 apple.stab <- get.biom(X = spikedApples$dataMatrix,
@@ -101,6 +102,7 @@ unlist(sapply(selected.variables,
 ## FPs (stab): PCR finds most FPs (approx. 60), other latent-variable
 ## methods approx 40, lasso allows for the optimal selection around 
 ## lambda = 0.0702
+}
 
 ## regression example
 data(gasoline) ## from the pls package

@@ -69,14 +69,14 @@ gen.data2(X, ncontrol, nbiom, spikeI,
   }
 \author{Ron Wehrens}
 \examples{
-X <- gen.data(10, nvar = 200)
+X <- gen.data(10, nvar = 20)
 names(X)
 dim(X$X)
 
+\dontrun{
 set.seed(7)
 simdat <- gen.data(10, nvar = 1200, nbiom = 22, nsimul = 1,
                    group.diff = 2)
-\dontrun{
 simdat.stab <- get.biom(simdat$X[,,1], simdat$Y, fmethod = "all",
                         type = "stab", ncomp = 3, scale.p = "auto")
 ## show LASSO success
